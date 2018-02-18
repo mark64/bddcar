@@ -1,5 +1,3 @@
-import os
-
 class Controls():
     def __init__(self, speed, direction):
         self.speed = speed
