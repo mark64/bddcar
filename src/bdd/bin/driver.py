@@ -4,13 +4,16 @@ import bdd.msg as amsg
 from bdd_driver import camera, ml
 Camera = camera.Camera
 ML = ml.ML
-from bdd_params import params
+from params import params
 
 def main():
     print('starting bdd driver node')
     rospy.init_node('bdd_driver')
     controls_pub = rospy.Publisher('bdd_controls', amsg.AutocommControlsMsg, queue_size=1)
     cam = Camera(test_mode=params.test_mode)
+    models = []
+    for model_info in params.models:
+        models,append(ML(model_info))
     models = [ML(params.weights_path) for _ in range(params.num_models)]
     if not cam.initialized and not params.test_mode:
         print('failed to connect to zed camera..exiting')

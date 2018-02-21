@@ -4,8 +4,10 @@ class Controls():
         self.direction = direction
 
 class ML():
-    def __init__(self, weights_path):
-        self.weights_path = weights_path
+    def __init__(self, model_info):
+        self.weights = model_info['weights_path']
+        self.model = model_info['model_code']
+        self.model.share_memory()
 
     def output_controls(self, left_image, right_image):
         speed = 0.1
