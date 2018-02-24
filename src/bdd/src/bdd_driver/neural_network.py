@@ -3,11 +3,13 @@ class Controls():
         self.speed = speed
         self.direction = direction
 
-class ML():
+class NeuralNetwork():
     def __init__(self, model_info):
-        self.weights = model_info['weights_path']
-        self.model = model_info['model_code']
-        self.model.share_memory()
+        self.info = model_info
+
+    def startProcess():
+        self.model = self.info['model_code']
+
 
     def output_controls(self, left_image, right_image):
         speed = 0.1

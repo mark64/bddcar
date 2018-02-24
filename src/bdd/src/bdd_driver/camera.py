@@ -1,45 +1,79 @@
-import pyzed.camera as zcam
-import pyzed.core as mat
-import pyzed.defines as sl
-import pyzed.types as types
-import pyzed.mesh as mesh
 import numpy as np
+import cv2
+from params import params
+from enum import Enum
+
+class MemType (Enum):
+    """
+    enum for representing what kind
+    of memory is or should be used for
+    storage
+    """
+    CPU = 0
+    GPU = 1
 
 class Camera():
-    def __init__(self, mem_type=mat.MEM.CPU, test_mode=False):
-        self.initialized = False
-        self.test_mode = test_mode
-        self.mem_type = mem_type
-        self.fps = fps
+    def __init__(self, camera_number=0, mem_type=MemType.CPU):
+        """Usually, camera_number=0 is correct.
+        However, if there are multiple cameras
+        connected or if you run into issues, check
+        the output of "ls /dev/ | grep video" and
+        replace camera_number with the one of the
+        numbers in the output from grep
 
-        init = zcam.PyInitParameters()
-        init.camera_resolution = sl.PyRESOLUTION.PyRESOLUTION_HD720
-        init.camera_fps = self.fps
-        init.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_NONE
-        init.sdk_verbose = True
-
-        self.zed_left = mat.PyMat()
-        self.zed_right = mat.PyMat()
-        self.cam = zcam.PyZEDCamera()
-        status = self.cam.open(init)
-        if status != types.PyERROR_CODE.PySUCCESS:
-            print("failed to open camera..is the Zed camera connected?")
-            if not self.test_mode:
-                exit(1)
+        mem_type = GPU is currently not supported
+        """
+        self.cam = cv2.VideoCapture(0)
+        status = self.cam.isOpened()
+        if not status:
+            rospy.logfatal("failed to open camera..is the Zed camera connected?")
+            exit(1)
         else:
             self.initialized = True
-            self.runtime_params = zcam.PyRuntimeParameters()
+            self.setCameraSettings()
 
     def __del__(self):
         if self.initialized:
-            self.cam.close()
+            self.cam.release()
+        cv2.destroyAllWindows()
 
-    def capture(self):
-        if self.initialized and zed.grab(self.runtime_params) == types.PyERROR_CODE.PySUCCESS:
-            zed.retrieve_image(self.zed_left, sl.PyVIEW.PyVIEW_LEFT, self.mem_type)
-            zed.retrieve_image(self.zed_right,  sl.PyVIEW.PyVIEW_RIGHT, self.mem_type)
-            return True
-        if self.test_mode:
-            self.left = np.zeros((1080, 720))
-            self.right = np.zeros((1080, 720))
-        return self.test_mode
+    def setCameraSettings(self):
+        """set the camera resolution, frame rate,
+        and other parameters based on the values
+        read by the params module
+
+        see [here](https://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html#videocapture-get)
+        for possible settings
+        """
+        #s = params.camera_settings
+        s = {'fps': 30, 'frame_height': 480, 'frame_width': 640}
+        self.fps = s['fps']
+        self.height = s['frame_height']
+        self.width = s['frame_width']
+
+        self.cam.set(cv2.CAP_PROP_FPS, self.fps)
+        self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+        # the *2 is because zed frames contain the left and
+        # right images side by side
+        self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.width*2)
+
+    def capture(self, display=False):
+        """captures a frame and if successful,
+        breaks it into left and right images
+        otherwise, returns False, None, None
+
+        display is a boolean flag indicating
+        whether to display the captured image
+        in a window, which is useful for debugging
+        """
+        success = False
+        left, right = None, None
+        if self.initialized:
+            success, frame = self.cam.read()
+            if success:
+                width = frame.shape[1]
+                left = frame[:,0:int(width / 2)]
+                right = frame[:,int(width / 2):]
+        if display and success:
+            cv2.imshow('frame', frame)
+        return success, left, right

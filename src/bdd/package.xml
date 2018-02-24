@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>autocomm</name>
+  <name>bdd</name>
   <version>0.0.1</version>
-  <description>The autocomm package</description>
+  <description>The bdd model car software package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(autocomm)
+project(bdd)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -26,7 +26,7 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  AutocommControlsMsg.msg
+  BDDControlsMsg.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -59,7 +59,8 @@ include_directories(
 #############
 ## Install ##
 #############
-
+catkin_install_python(PROGRAMS bin/driver.py
+	  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 

@@ -1,32 +1,49 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import rospy
-import bdd.msg as amsg
-from bdd_driver import camera, ml
+from bdd_driver import camera, neural_network
 Camera = camera.Camera
-ML = ml.ML
+NeuralNetwork = neural_network.NeuralNetwork
 from params import params
 
+"""
+This is the driver ros node,
+the main entry-point for car
+control generation. For information
+on actually sending controls to
+the hardware and other hw/sw
+interface code, see car.py and
+the bdd_car module
+
+The driver node is responsible for spawning
+neural network processes for each
+set of parameters as returned by
+params.models (see the params module)
+
+In addition to starting the
+neural networks, this initializes the
+zed camera and takes care of publishing
+images to a ros topic, to which the
+neural network processes should subscribe
+"""
+
 def main():
-    print('starting bdd driver node')
     rospy.init_node('bdd_driver')
-    controls_pub = rospy.Publisher('bdd_controls', amsg.AutocommControlsMsg, queue_size=1)
-    cam = Camera(test_mode=params.test_mode)
-    models = []
-    for model_info in params.models:
-        models,append(ML(model_info))
-    models = [ML(params.weights_path) for _ in range(params.num_models)]
-    if not cam.initialized and not params.test_mode:
-        print('failed to connect to zed camera..exiting')
+    rospy.logdebug('starting bdd driver node')
+
+    cam = Camera(camera_number=0, mem_type=camera.MemType.CPU)
+    if not cam.initialized:
+        rospy.logfatal('failed to connect to zed camera..exiting')
         exit(1)
-    rate = rospy.Rate(cam.camera_fps)
+
+
+
+    rate = rospy.Rate(cam.fps)
     while not rospy.is_shutdown():
+        success, left, right = cam.capture(display=True)
         if cam.capture():
-            controls = [model.output_controls(cam.left, cam.right) for model in models][0]
-            control = ml.aggregate_controls(controls)
-            msg = amsg.BDDControlsMsg(speed=control.speed, direction=control.direction)
-            controls_pub.publish(msg)
+            print('yay')
         rate.sleep()
-    print('bdd driver node exiting')
+    rospy.logdebug('bdd driver node exiting')
 
 if __name__ == '__main__':
     main()
