@@ -76,4 +76,5 @@ class Camera():
                 right = frame[:,int(width / 2):]
         if display and success:
             cv2.imshow('frame', frame)
+            cv2.waitKey(1)
         return success, left, right

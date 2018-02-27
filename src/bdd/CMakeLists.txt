@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   message_runtime
   std_msgs
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -27,12 +28,14 @@ catkin_python_setup()
 add_message_files(
   FILES
   BDDControlsMsg.msg
+  Ints.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   std_msgs
+  sensor_msgs
 )
 
 ###################################
