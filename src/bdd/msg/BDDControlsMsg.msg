@@ -1,3 +1,2 @@
 float32 speed
 float32 direction
-int32 state

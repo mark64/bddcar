@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import rospy
-from bdd_driver import camera, neural_network
+from bdd_driver import camera, neural_network, controls_aggregator
 Camera = camera.Camera
 NeuralNetwork = neural_network.NeuralNetwork
+Aggregator = controls_aggregator.Aggregator
 from params import params
 import bdd.msg as BDDMsg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-"""
+"""Main node
 This is the driver ros node,
 the main entry-point for car
 control generation. For information
@@ -42,18 +42,19 @@ def main():
         exit(1)
     rospy.logdebug('camera initialized')
 
-    left_pub = rospy.Publisher('bdd/left/image_rect_color', Image, queue_size=0)
-    right_pub = rospy.Publisher('bdd/right/image_rect_color', Image, queue_size=0)
+    net = neural_network.NeuralNetwork({}, 0)
+    agg = Aggregator(1)
+
     image_pub = rospy.Publisher('bdd/dual_image', BDDMsg.BDDDualImage, queue_size=0)
     rate = rospy.Rate(cam.fps)
+    net.startProcess()
     while not rospy.is_shutdown():
-        success, left, right = cam.capture(display=True)
+        success, left, right = cam.capture(display=False)
         if success:
             try:
                 ros_left = cv_bridge.cv2_to_imgmsg(left, "bgr8")
                 ros_right = cv_bridge.cv2_to_imgmsg(right, "bgr8")
-                left_pub.publish(ros_left)
-                right_pub.publish(ros_right)
+                image_pub.publish(BDDMsg.BDDDualImage(left=ros_left, right=ros_right))
             except CvBridgeError as e:
                 rospy.logdebug(e)
         rate.sleep()

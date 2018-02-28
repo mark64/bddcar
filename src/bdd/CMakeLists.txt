@@ -28,7 +28,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   BDDControlsMsg.msg
-  Ints.msg
+  BDDDualImage.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
