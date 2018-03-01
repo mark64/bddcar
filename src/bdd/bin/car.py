@@ -3,7 +3,7 @@ import os
 import threading
 import time
 import rospy
-import bdd.msg as amsg
+import bdd.msg as BDDMsg
 import bdd_car.arduino_utils as utils
 from params import params
 
@@ -39,7 +39,7 @@ def controls_callback(controls_msg):
 def main():
     print('starting bdd car node')
     rospy.init_node('bdd_car')
-    rospy.Subscriber('bdd_controls', amsg.BDDControlsMsg, callback=controls_callback)
+    rospy.Subscriber('bdd/controls/car_controls', BDDMsg.BDDControlsMsg, callback=controls_callback)
     rospy.spin()
     print('exiting bdd car node')
 

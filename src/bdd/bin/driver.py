@@ -4,7 +4,7 @@ from bdd_driver import camera, neural_network, controls_aggregator
 Camera = camera.Camera
 NeuralNetwork = neural_network.NeuralNetwork
 Aggregator = controls_aggregator.Aggregator
-from params import params
+import params
 import bdd.msg as BDDMsg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -43,8 +43,8 @@ def main():
         exit(1)
     rospy.logdebug('camera initialized')
 
-    num_nets = 10
-    net_info = [{} for _ in range(num_nets)]
+    num_nets = len(params.model_info)
+    net_info = params.model_info
     processes = []
     for i in range(num_nets):
         nets.append(neural_network.NeuralNetwork(net_info[i], i))

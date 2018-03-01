@@ -11,8 +11,19 @@ baudrate = 19200
 timeout = 1
 
 # driver.py
-num_models = 1
 test_mode = True
-weights_path = "./weights"
+
+# models
+model_info = [
+    {
+        'name': 'blank',
+        'full_path': '/home/mark/bddcar/path/to/model.py',
+        'framework': 'pytorch', # or something else like 'tensorflow'
+                                # if your framework isn't supported,
+                                # then you will have to convert a
+                                # numpy matrix to your networks's
+                                # desired type
+    },
+]
 
 
