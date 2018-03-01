@@ -8,6 +8,7 @@ from params import params
 import bdd.msg as BDDMsg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from multiprocessing import Process
 
 """Main node
 This is the driver ros node,
@@ -42,22 +43,31 @@ def main():
         exit(1)
     rospy.logdebug('camera initialized')
 
-    net = neural_network.NeuralNetwork({}, 0)
-    agg = Aggregator(1)
+    num_nets = 10
+    net_info = [{} for _ in range(num_nets)]
+    processes = []
+    for i in range(num_nets):
+        nets.append(neural_network.NeuralNetwork(net_info[i], i))
+        p = Process(target=net.start_process)
+        p.start()
+        processes.append(p)
+    agg = Aggregator(num_nets)
 
     image_pub = rospy.Publisher('bdd/dual_image', BDDMsg.BDDDualImage, queue_size=0)
     rate = rospy.Rate(cam.fps)
-    net.startProcess()
     while not rospy.is_shutdown():
-        success, left, right = cam.capture(display=False)
+        success, image = cam.capture(display=False)
         if success:
             try:
-                ros_left = cv_bridge.cv2_to_imgmsg(left, "bgr8")
-                ros_right = cv_bridge.cv2_to_imgmsg(right, "bgr8")
-                image_pub.publish(BDDMsg.BDDDualImage(left=ros_left, right=ros_right))
+                ros_image = cv_bridge.cv2_to_imgmsg(image, "bgr8")
+                image_pub.publish(BDDMsg.BDDDualImage(combined_image=ros_image))
             except CvBridgeError as e:
                 rospy.logdebug(e)
         rate.sleep()
+
+    rospy.logdebug('waiting for ml subprocesses to exit')
+    for p in processes:
+        p.join()
     rospy.logdebug('bdd driver node exiting')
 
 if __name__ == '__main__':

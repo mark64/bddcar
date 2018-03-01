@@ -3,6 +3,7 @@ import cv2
 import bdd.msg as BDDMsg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+import torch
 
 """Neural Network class
 Run a neural network based on the
@@ -20,29 +21,38 @@ image input
 see the examples in <TODO: make examples dir>
 """
 
-class Controls():
-    def __init__(self, speed, direction):
-        self.speed = speed
-        self.direction = direction
-
 class NeuralNetwork():
     def __init__(self, model_info, node_num):
         self.info = model_info
         self.node_num = node_num
 
-    def startProcess(self):
+    def start_process(self):
 ####        self.model = self.info['model_code']
         self.bridge = CvBridge()
         # create the pytorch model
-        rospy.Subscriber('bdd/dual_image', BDDMsg.BDDDualImage, self.output_controls)
+        rospy.Subscriber('bdd/dual_image', BDDMsg.BDDDualImage, self.image_callback)
         self.controls_pub = rospy.Publisher('bdd/controls/node{0}'.format(self.node_num), BDDMsg.BDDControlsMsg, queue_size=0)
 
-    def output_controls(self, dual_image):
+    def image_callback(self, dual_image):
         try:
-            left = self.bridge.imgmsg_to_cv2(dual_image.left)
-            right = self.bridge.imgmsg_to_cv2(dual_image.right)
-            speed = 0.1
-            direction = 0.2
+            image = self.bridge.imgmsg_to_cv2(dual_image.combined_image)
+            speed, direction = self.output_contrls(image)
             self.controls_pub.publish(BDDMsg.BDDControlsMsg(speed=speed, direction=direction))
         except CvBridgeError as e:
             rospy.logdebug(e)
+
+    def init_model(self):
+        pass
+
+    def output_controls(self, image):
+        speed = 0.0
+        direction = 0.0
+        return speed, direction
+
+    def numpy_int_mat_to_pytorch_float_tensor(np_mat):
+        """helper function, incomplete
+        """
+        tensor = torch.from_numpy(np_mat)
+        tensor = (tensor.float() / 255.0) - 0.5
+        # TODO: add more processing code here
+        return tensor

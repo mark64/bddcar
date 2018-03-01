@@ -59,22 +59,18 @@ class Camera():
 
     def capture(self, display=False):
         """captures a frame and if successful,
-        breaks it into left and right images
-        otherwise, returns False, None, None
+        returns True, image. Otherwise, returns
+        False, None, None
 
         display is a boolean flag indicating
         whether to display the captured image
         in a window, which is useful for debugging
         """
         success = False
-        left, right = None, None
+        frame = None
         if self.initialized:
             success, frame = self.cam.read()
-            if success:
-                width = frame.shape[1]
-                left = frame[:,0:int(width / 2)]
-                right = frame[:,int(width / 2):]
         if display and success:
             cv2.imshow('frame', frame)
             cv2.waitKey(1)
-        return success, left, right
+        return success, frame
