@@ -4,7 +4,7 @@ from bdd_driver import camera, neural_network, controls_aggregator
 Camera = camera.Camera
 NeuralNetwork = neural_network.NeuralNetwork
 Aggregator = controls_aggregator.Aggregator
-import params
+from params import params
 import bdd.msg as BDDMsg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
